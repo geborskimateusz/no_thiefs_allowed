@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "ESP32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/mat/esp/esp-idf/components/**",
+                "/home/mat/esp/esp-idf/components/freertos/include",
+                "/home/mat/esp/esp-idf/components/esp_common/include",
+                "/home/mat/esp/esp-idf/components/esp_system/include",
+                "/home/mat/esp/esp-idf/components/driver/include",
+                "/home/mat/esp/esp-idf/components/hal/include",
+                "/home/mat/esp/esp-idf/components/newlib/platform_include",
+                "/home/mat/esp/esp-idf/components/xtensa/include"
+            ],
+            "defines": [
+                "ESP_PLATFORM"
+            ],
+            "compilerPath": "/home/mat/.espressif/tools/xtensa-esp32-elf/esp-12.2.0_20230208/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
