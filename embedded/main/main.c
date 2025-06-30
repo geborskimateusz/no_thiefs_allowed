@@ -4,27 +4,25 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 
-// GPIO Definitions
-#define ON_OFF_BUTTON     GPIO_NUM_4
-#define REED_SWITCH_PIN   GPIO_NUM_6
-#define LED_ALARM_PIN     GPIO_NUM_18
-#define LED_OK_PIN        GPIO_NUM_19
-#define LED_SETUP_PIN     GPIO_NUM_21
+#define ON_OFF_BUTTON GPIO_NUM_4
+#define REED_SWITCH_PIN GPIO_NUM_5
+#define LED_ALARM_PIN GPIO_NUM_18
+#define LED_OK_PIN GPIO_NUM_19
+#define LED_SETUP_PIN GPIO_NUM_21
 
-// Device State Struct
+static const char *TAG = "device";
+
 typedef struct {
     int turnedOn;
-    int lastOnOffState;
+    bool lastOnOffState;
     bool setupDeferredDone;
 } DeviceState;
 
 DeviceState deviceState = {
     .turnedOn = 0,
-    .lastOnOffState = 1,
+    .lastOnOffState = true,  // HIGH
     .setupDeferredDone = false
 };
-
-static const char* TAG = "Device";
 
 void blink(gpio_num_t pin, int iter, int blinkTimeMs) {
     for (int i = 0; i < iter; i++) {
@@ -58,7 +56,7 @@ void checkReedSwitchState() {
     int reedSwitchState = gpio_get_level(REED_SWITCH_PIN);
 
     if (reedSwitchState == 1) {
-        ESP_LOGW(TAG, "Circuit is broken or disconnected!");
+        ESP_LOGI(TAG, "Circuit is broken or disconnected!");
         gpio_set_level(LED_OK_PIN, 0);
         blink(LED_ALARM_PIN, 5, 300);
         gpio_set_level(LED_ALARM_PIN, 1);
@@ -84,26 +82,27 @@ void handleOnOffSwitch(DeviceState* state) {
     }
 }
 
-void configure_gpio() {
-    gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << ON_OFF_BUTTON) | (1ULL << REED_SWITCH_PIN),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
+void app_main(void)
+{
+    // Configure GPIO pins
+    gpio_config_t io_conf = {0};
+
+    // Inputs with pull-up
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+
+    io_conf.pin_bit_mask = (1ULL << ON_OFF_BUTTON) | (1ULL << REED_SWITCH_PIN);
     gpio_config(&io_conf);
 
-    io_conf.pin_bit_mask = (1ULL << LED_SETUP_PIN) | (1ULL << LED_OK_PIN) | (1ULL << LED_ALARM_PIN);
+    // Outputs
     io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    io_conf.pull_up_en = 0;
+    io_conf.pin_bit_mask = (1ULL << LED_ALARM_PIN) | (1ULL << LED_OK_PIN) | (1ULL << LED_SETUP_PIN);
     gpio_config(&io_conf);
 
-    gpio_set_level(LED_SETUP_PIN, 1);
-}
-
-void app_main(void) {
-    configure_gpio();
+    gpio_set_level(LED_SETUP_PIN, 1); // Turn LED_SETUP_PIN on
 
     while (1) {
         handleOnOffSwitch(&deviceState);
