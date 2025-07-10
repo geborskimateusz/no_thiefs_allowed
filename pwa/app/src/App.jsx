@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import io from 'socket.io-client'
 
-const socket = io('http://localhost:5000')  // docker-compose will alias this
+const socket = io(window.location.origin, {
+  path: '/socket.io',
+  transports: ['websocket'],
+})
+
 
 function App() {
   const [events, setEvents] = useState([])

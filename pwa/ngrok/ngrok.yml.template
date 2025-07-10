@@ -1,0 +1,10 @@
+version: 2
+
+authtoken: ${NGROK_AUTHTOKEN}
+
+tunnels:
+  web:
+    addr: nginx:80
+    proto: http
+    basic_auth:
+      - "${NGROK_BASIC_AUTH_USER}:${NGROK_BASIC_AUTH_PASS}"

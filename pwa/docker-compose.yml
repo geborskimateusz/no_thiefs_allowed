@@ -3,14 +3,34 @@ version: '3.8'
 services:
   server:
     build: ./server
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./server:/app
+    networks:
+      - appnet
+
   app:
     build: ./app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - server 
+    networks:
+      - appnet
 
+  nginx:
+    build: ./nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+      - server
+    networks:
+      - appnet
+
+  ngrok:
+    build: ./ngrok
+    depends_on:
+      - nginx
+    networks:
+      - appnet
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+      - NGROK_BASIC_AUTH_USER=${NGROK_BASIC_AUTH_USER}
+      - NGROK_BASIC_AUTH_PASS=${NGROK_BASIC_AUTH_PASS}
+
+networks:
+  appnet:
