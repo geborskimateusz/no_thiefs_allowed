@@ -21,16 +21,5 @@ services:
     networks:
       - appnet
 
-  ngrok:
-    build: ./ngrok
-    depends_on:
-      - nginx
-    networks:
-      - appnet
-    environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
-      - NGROK_BASIC_AUTH_USER=${NGROK_BASIC_AUTH_USER}
-      - NGROK_BASIC_AUTH_PASS=${NGROK_BASIC_AUTH_PASS}
-
 networks:
   appnet:
