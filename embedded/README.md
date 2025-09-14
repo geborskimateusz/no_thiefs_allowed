@@ -1,2 +1,0 @@
-1. Under root of project run: docker build -f docker/Dockerfile -t esp32-docker .
-2. Inside container execute idf.py fullclean && idf.py build && idf.py -p /dev/${YOUR_USB_PORT}flash && idf.py -p /dev/ttyUSB0 monitor 
