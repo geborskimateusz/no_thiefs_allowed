@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include "sdkconfig.h"
 #include "esp_log.h"
 #include "driver/gpio.h"
 

@@ -1,0 +1,16 @@
+menu "No thiefs Allowed Reed Switch Config"
+
+config WIFI_SSID
+    string "Wi-Fi SSID"
+    default "MyWiFi"
+    help
+        Enter the SSID for the Wi-Fi network the ESP32 should connect to.
+
+config WIFI_PASSWORD
+    string "Wi-Fi Password"
+    default "MyPassword"
+    help
+        Enter the password for the Wi-Fi network.
+
+endmenu
+
