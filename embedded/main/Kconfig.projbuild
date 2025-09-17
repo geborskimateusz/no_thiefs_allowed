@@ -12,5 +12,16 @@ config WIFI_PASSWORD
     help
         Enter the password for the Wi-Fi network.
 
+config WEB_SERVER_URL
+    string "IP of web server"
+    default "XXXXXXXXXX"
+    help
+        Enter the ${ip}:${port} to make api calls
+
+config WEB_SERVER_TOKEN
+    string "Auth Token for web server"
+    default "XXXXXXXXXX"
+    help
+        Enter the token to make api calls
 endmenu
 
