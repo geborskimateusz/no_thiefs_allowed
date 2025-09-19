@@ -19,6 +19,10 @@
 
 static const char* TAG = "AlarmModule";
 
+#define CODE_OK                 0
+#define CODE_REED_SWITCH_BROKEN 1
+
+// LED MODULE
 static const int YELLOW_LED_PIN = 21;
 static const int GREEN_LED_PIN = 19;
 static const int RED_LED_PIN = 18;
@@ -80,11 +84,6 @@ void configure_reed_switch() {
 #define WIFI_CONNECTED_BIT BIT0
 static EventGroupHandle_t s_wifi_event_group;
 
-char web_server_url[128];
-snprintf(web_server_url, sizeof(web_server_url), "%s/api/health", CONFIG_WEB_SERVER_URL);
-
-char web_server_token[128];
-snprintf(web_server_token, sizeof(web_server_token), "Basic %s", CONFIG_WEB_SERVER_TOKEN);
 
 // Wi-Fi event handler
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
@@ -136,10 +135,19 @@ static void http_post_task(void *pvParameters)
 {
     // Wait for Wi-Fi
     xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
-    vTaskDelay(pdMS_TO_TICKS(200));
 
-    const char *post_data = "{\"message\": \"BROKEN_CIRCUIT\"}";
+    uint32_t reed_switch_status_code = (uint32_t) pvParameters;
+    char post_data[128];  
+    snprintf(post_data, sizeof(post_data),"{\"message\": %ld}", reed_switch_status_code);
+    ESP_LOGI(TAG, "CALLING /api/health with body: %s", post_data);
 
+
+    char web_server_url[128];
+    snprintf(web_server_url, sizeof(web_server_url), "%s/api/health", CONFIG_WEB_SERVER_URL);
+
+    char web_server_token[128];
+    snprintf(web_server_token, sizeof(web_server_token), "Basic %s", CONFIG_WEB_SERVER_TOKEN);
+    
     esp_http_client_config_t config = {
         .url = web_server_url,
         .method = HTTP_METHOD_POST,
@@ -162,24 +170,34 @@ static void http_post_task(void *pvParameters)
     }
 
     esp_http_client_cleanup(client);
-    vTaskDelete(NULL);
 }
 
+
+// MAIN APP
 void app_main(void) {
     wifi_init(); // Start Wi-Fi
+
+    // Wait until connected before starting main loop
+    xEventGroupWaitBits(s_wifi_event_group, WIFI_CONNECTED_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
+    ESP_LOGI(TAG, "Network ready, starting main loop.");
 
     configure_led_pins();
     set_device_ready_state();
     configure_reed_switch();
-    
+
     while (1) {
         int reed_switch_pin_level = gpio_get_level(REED_SWITCH_PIN);
+        uint32_t status_code = (reed_switch_pin_level == 0) ? CODE_OK : CODE_REED_SWITCH_BROKEN;
+
         if (reed_switch_pin_level == 0) {
             set_ok_state();
         } else {
             set_alarm_state();
-            xTaskCreate(&http_post_task, "http_post_task", 8192, NULL, 5, NULL);
         }
-        sleep(1);
+
+
+        http_post_task((void *)status_code);
+
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }
